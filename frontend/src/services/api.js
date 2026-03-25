@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+// ✅ Define API URL separately
+const API_URL = "https://grievanceportal-8gew.onrender.com";
+
+// ✅ Create axios instance correctly
 const api = axios.create({
-  baseURL:'http://localhost:5000/api',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Attach JWT token to every request
@@ -35,7 +41,8 @@ export const complaintsAPI = {
   getOne: (id) => api.get(`/complaints/${id}`),
   submit: (data) => api.post('/complaints', data),
   assign: (id, dept) => api.patch(`/complaints/${id}/assign`, { dept }),
-  updateStatus: (id, status, remarks) => api.patch(`/complaints/${id}/status`, { status, remarks }),
+  updateStatus: (id, status, remarks) =>
+    api.patch(`/complaints/${id}/status`, { status, remarks }),
 };
 
 export const notificationsAPI = {

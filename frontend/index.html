@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniGrieve — Student Grievance Redressal System</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0a1628;--navy2:#112240;--navy3:#1a3356;
+  --gold:#c9a84c;--gold2:#e8c86a;--gold3:#f5e0a0;
+  --cream:#f8f5ee;--cream2:#ede8dc;
+  --text:#1a1a2e;--text2:#4a5568;--text3:#718096;
+  --white:#ffffff;
+  --red:#e53e3e;--green:#38a169;--orange:#dd6b20;--blue:#3182ce;
+  --radius:12px;--radius2:8px;
+  --shadow:0 4px 24px rgba(10,22,40,0.10);
+  --shadow2:0 2px 8px rgba(10,22,40,0.07);
+  --border:#e2d9c5;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+h1,h2,h3{font-family:'Playfair Display',serif}
+.gold{color:var(--gold)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:var(--radius2);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:var(--navy);color:var(--white)}
+.btn-primary:hover{background:var(--navy3);transform:translateY(-1px)}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}
+.btn-outline:hover{background:var(--navy);color:var(--white)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:6px 14px;font-size:13px}
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow2);padding:24px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-pending{background:#fef3c7;color:#92400e}
+.badge-inprogress{background:#dbeafe;color:#1e40af}
+.badge-resolved{background:#d1fae5;color:#065f46}
+.badge-new{background:#ede9fe;color:#5b21b6}
+.input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius2);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--text);outline:none;transition:border .2s}
+.input:focus{border-color:var(--navy)}
+.select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius2);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--white);color:var(--text);outline:none;cursor:pointer}
+.label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.form-group{margin-bottom:18px}
+.sidebar{width:240px;min-height:100vh;background:var(--navy);position:fixed;left:0;top:0;display:flex;flex-direction:column}
+.sidebar-logo{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.sidebar-logo h2{color:var(--white);font-size:18px;font-family:'Playfair Display',serif}
+.sidebar-logo p{color:var(--gold);font-size:11px;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,0.65);cursor:pointer;transition:all .2s;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.08);color:var(--white);border-left-color:var(--gold)}
+.nav-icon{width:18px;height:18px;flex-shrink:0}
+.main-content{margin-left:240px;min-height:100vh;background:var(--cream)}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.page-content{padding:32px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--gold)}
+.stat-value{font-size:28px;font-weight:600;color:var(--navy);font-family:'Playfair Display',serif}
+.stat-label{font-size:13px;color:var(--text3);margin-top:4px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:10px 16px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--cream)}
+td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(201,168,76,0.04)}
+.complaint-row{cursor:pointer}
+.notif-badge{background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;position:absolute;top:-4px;right:-4px}
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+.toast{background:var(--navy);color:var(--white);padding:14px 20px;border-radius:var(--radius2);font-size:13px;border-left:4px solid var(--gold);animation:slideIn .3s ease;max-width:320px;box-shadow:var(--shadow)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--white);border-radius:var(--radius);padding:32px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.close-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;background:var(--cream);border:1px solid var(--border);color:var(--text2)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:16px}
+.progress-bar{height:6px;background:var(--cream2);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .3s}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);color:var(--white);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.main-content{margin-left:0}}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.tag-acad{background:#ede9fe;color:#5b21b6}
+.tag-facil{background:#d1fae5;color:#065f46}
+.tag-hostel{background:#dbeafe;color:#1e40af}
+.tag-faculty{background:#fef3c7;color:#92400e}
+.tag-admin{background:#fee2e2;color:#991b1b}
+.tag-exam{background:#e0e7ff;color:#3730a3}
+.tag-sports{background:#d1fae5;color:#065f46}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.notif-list{max-height:340px;overflow-y:auto}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.notif-item:last-child{border-bottom:none}
+.notif-item.unread{background:#fffbeb}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useCallback,useRef}=React;
+
+// ─── INITIAL DATA ───
+const USERS=[
+  {id:'admin1',email:'admin@university.edu',password:'admin@2026',role:'admin',name:'Admin User'},
+  {id:'hod1',email:'hod@university.edu',password:'hod@2026',role:'hod',name:'HOD'},
+  {id:'dept_acad',email:'academics@university.edu',password:'acad@2026',role:'department',dept:'Academics',name:'Academics Dept'},
+  {id:'dept_facil',email:'facilities@university.edu',password:'facil@2026',role:'department',dept:'Facilities',name:'Facilities Dept'},
+  {id:'dept_hostel',email:'hostel@university.edu',password:'hostel@2026',role:'department',dept:'Hostel',name:'Hostel Dept'},
+  {id:'dept_faculty',email:'faculty@university.edu',password:'faculty@2026',role:'department',dept:'Faculty',name:'Faculty Dept'},
+  {id:'dept_admindept',email:'admin-dept@university.edu',password:'admindept@2026',role:'department',dept:'Administration',name:'Administration Dept'},
+  {id:'dept_exam',email:'exam@university.edu',password:'exam@2026',role:'department',dept:'Examination Branch',name:'Examination Dept'},
+  {id:'dept_sports',email:'sports@university.edu',password:'sports@2026',role:'department',dept:'Sports',name:'Sports Dept'},
+];
+
+const DEPARTMENTS=['Academics','Facilities','Hostel','Faculty','Administration','Examination Branch','Sports'];
+
+const DEPT_TAG={Academics:'tag-acad',Facilities:'tag-facil',Hostel:'tag-hostel',Faculty:'tag-faculty',Administration:'tag-admin','Examination Branch':'tag-exam',Sports:'tag-sports'};
+
+
+
+
+// ─── LOCAL STORAGE HELPERS ───
+const getLS=(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch{return def}};
+const setLS=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+// ─── ICONS ───
+const Icon=({name,size=18,style={}})=>{
+  const icons={
+    home:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+    file:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+    list:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+    bell:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
+    logout:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+    plus:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    x:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    check:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><polyline points="20 6 9 17 4 12"/></svg>,
+    user:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    chart:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    edit:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    shield:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    building:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>,
+    graduation:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+    eye:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    search:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    award:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
+    hourglass:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={style}><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2"/></svg>,
+  };
+  return icons[name]||null;
+};
+
+// ─── TOAST SYSTEM ───
+let toastFn=null;
+const Toast=()=>{
+  const[toasts,setToasts]=useState([]);
+  useEffect(()=>{toastFn=(msg,type='info')=>{const id=Date.now();setToasts(t=>[...t,{id,msg,type}]);setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),4000)}},[]);
+  return<div className="toast-container">{toasts.map(t=><div key={t.id} className="toast">{t.msg}</div>)}</div>;
+};
+const showToast=(msg,type)=>toastFn&&toastFn(msg,type);
+
+// ─── APP STATE ───
+const App=()=>{
+  const[page,setPage]=useState('home');
+  const[currentUser,setCurrentUser]=useState(null);
+  const[complaints,setComplaints]=useState(()=>getLS('grs_complaints',[]));
+  const[students,setStudents]=useState(()=>getLS('grs_students',[]));
+  const[notifications,setNotifications]=useState(()=>getLS('grs_notifications',[]));
+
+  useEffect(()=>setLS('grs_complaints',complaints),[complaints]);
+  useEffect(()=>setLS('grs_students',students),[students]);
+  useEffect(()=>setLS('grs_notifications',notifications),[notifications]);
+
+  const addNotification=(forRole,forId,msg)=>{
+    const n={id:Date.now()+'',forRole,forId,msg,read:false,at:new Date().toISOString()};
+    setNotifications(ns=>[n,...ns]);
+  };
+
+  const login=(email,password)=>{
+    // Check staff
+    const staff=USERS.find(u=>u.email===email&&u.password===password);
+    if(staff){setCurrentUser(staff);setPage(staff.role+'-dashboard');return true;}
+    // Check students
+    const stu=students.find(u=>u.email===email&&u.password===password);
+    if(stu){setCurrentUser({...stu,role:'student'});setPage('student-dashboard');return true;}
+    return false;
+  };
+
+  const logout=()=>{setCurrentUser(null);setPage('home')};
+
+  const submitComplaint=(data)=>{
+    const id='GR-'+(String(complaints.length+1).padStart(3,'0'));
+    const c={id,...data,status:'Pending',createdAt:new Date().toISOString().split('T')[0],updatedAt:new Date().toISOString().split('T')[0],remarks:'',assignedBy:null,dept:null};
+    setComplaints(cs=>[...cs,c]);
+    addNotification('admin','all',`New complaint "${data.title}" submitted by ${data.studentName}`);
+    showToast('Complaint submitted successfully!');
+    return id;
+  };
+
+  const assignComplaint=(id,dept)=>{
+    setComplaints(cs=>cs.map(c=>c.id===id?{...c,dept,assignedBy:currentUser.id,status:'Pending',updatedAt:new Date().toISOString().split('T')[0]}:c));
+    const deptUser=USERS.find(u=>u.dept===dept);
+    addNotification('department',deptUser?.id||dept,`Complaint ${id} has been assigned to your department`);
+    const comp=complaints.find(c=>c.id===id);
+    if(comp)addNotification('student',comp.studentId,`Your complaint "${comp.title}" has been assigned to ${dept}`);
+    showToast(`Complaint assigned to ${dept}`);
+  };
+
+  const updateStatus=(id,status,remarks)=>{
+    setComplaints(cs=>cs.map(c=>c.id===id?{...c,status,remarks,updatedAt:new Date().toISOString().split('T')[0]}:c));
+    const comp=complaints.find(c=>c.id===id);
+    if(comp)addNotification('student',comp.studentId,`Your complaint "${comp.title}" status updated to "${status}"`);
+    showToast('Status updated successfully!');
+  };
+
+  const registerStudent=(data)=>{
+    const id='student'+Date.now();
+    const stu={...data,id};
+    setStudents(ss=>[...ss,stu]);
+    showToast('Registration successful! Please login.');
+    return true;
+  };
+
+  const myNotifs=currentUser?notifications.filter(n=>
+    (n.forRole==='admin'&&currentUser.role==='admin')||
+    (n.forRole==='student'&&n.forId===currentUser.id)||
+    (n.forRole==='department'&&(n.forId===currentUser.id||n.forId===currentUser.dept))||
+    (currentUser.role==='hod')
+  ):[];
+  const unreadCount=myNotifs.filter(n=>!n.read).length;
+
+  const markRead=()=>setNotifications(ns=>ns.map(n=>({...n,read:true})));
+
+  if(!currentUser){
+    if(page==='home')return<><HomePage setPage={setPage}/><Toast/></>;
+    if(page==='student-login')return<><LoginPage role="student" onLogin={login} onBack={()=>setPage('home')} onRegister={()=>setPage('student-register')}/><Toast/></>;
+    if(page==='admin-login')return<><LoginPage role="admin" onLogin={login} onBack={()=>setPage('home')}/><Toast/></>;
+    if(page==='department-login')return<><LoginPage role="department" onLogin={login} onBack={()=>setPage('home')}/><Toast/></>;
+    if(page==='student-register')return<><RegisterPage onRegister={registerStudent} onBack={()=>setPage('student-login')}/><Toast/></>;
+    return<><HomePage setPage={setPage}/><Toast/></>;
+  }
+
+  const commonProps={currentUser,complaints,notifications:myNotifs,unreadCount,markRead,logout};
+
+  if(currentUser.role==='student')return<><StudentDashboard {...commonProps} onSubmit={submitComplaint}/><Toast/></>;
+  if(currentUser.role==='admin')return<><AdminDashboard {...commonProps} onAssign={assignComplaint} students={students}/><Toast/></>;
+  if(currentUser.role==='department')return<><DeptDashboard {...commonProps} onUpdate={updateStatus}/><Toast/></>;
+  if(currentUser.role==='hod')return<><HODDashboard {...commonProps}/><Toast/></>;
+  return<><HomePage setPage={setPage}/><Toast/></>;
+};
+
+// ─── HOME PAGE ───
+const HomePage=({setPage})=>(
+  <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#0a1628 0%,#1a3356 100%)',display:'flex',flexDirection:'column'}}>
+    {/* Header */}
+    <header style={{padding:'24px 48px',display:'flex',alignItems:'center',gap:16,borderBottom:'1px solid rgba(201,168,76,0.2)'}}>
+      <div style={{width:44,height:44,borderRadius:10,background:'rgba(201,168,76,0.15)',border:'1px solid rgba(201,168,76,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <Icon name="graduation" size={22} style={{color:'#c9a84c'}}/>
+      </div>
+      <div>
+        <h1 style={{fontFamily:"'Playfair Display',serif",color:'#fff',fontSize:22,fontWeight:700}}>UniGrieve</h1>
+        <p style={{color:'rgba(201,168,76,0.8)',fontSize:11,letterSpacing:2,textTransform:'uppercase',marginTop:2}}>Student Grievance Redressal System</p>
+      </div>
+    </header>
+
+    {/* Hero */}
+    <div style={{textAlign:'center',padding:'72px 48px 48px'}}>
+      <div style={{display:'inline-block',background:'rgba(201,168,76,0.1)',border:'1px solid rgba(201,168,76,0.25)',borderRadius:20,padding:'6px 18px',marginBottom:24}}>
+        <span style={{color:'#c9a84c',fontSize:12,letterSpacing:1.5,textTransform:'uppercase',fontWeight:500}}>University Portal</span>
+      </div>
+      <h2 style={{fontFamily:"'Playfair Display',serif",color:'#fff',fontSize:42,fontWeight:700,lineHeight:1.2,marginBottom:16}}>Your Voice,<br/><span style={{color:'#c9a84c'}}>Heard &amp; Resolved</span></h2>
+      <p style={{color:'rgba(255,255,255,0.6)',fontSize:16,maxWidth:480,margin:'0 auto',lineHeight:1.7}}>A transparent, efficient system for submitting and tracking academic grievances across all departments.</p>
+    </div>
+
+    {/* Cards */}
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:24,padding:'0 48px 72px',maxWidth:1100,margin:'0 auto',width:'100%'}}>
+      {[
+        {icon:'graduation',title:'For Students',color:'#c9a84c',desc:'Submit grievances, track complaint status in real-time, and receive updates on every step.',btn:'Student Login',page:'student-login'},
+        {icon:'shield',title:'For Administrators',color:'#60a5fa',desc:'Manage complaints, assign to departments, monitor progress, and view comprehensive analytics.',btn:'Admin Login',page:'admin-login'},
+        {icon:'building',title:'For Departments',color:'#34d399',desc:'View assigned complaints, update resolution status, and communicate with students effectively.',btn:'Department Login',page:'department-login'},
+      ].map(c=>(
+        <div key={c.page} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:16,padding:32,display:'flex',flexDirection:'column',gap:20,transition:'all .25s',cursor:'default'}}
+          onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.08)';e.currentTarget.style.borderColor='rgba(201,168,76,0.3)';e.currentTarget.style.transform='translateY(-4px)'}}
+          onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.borderColor='rgba(255,255,255,0.1)';e.currentTarget.style.transform='translateY(0)'}}>
+          <div style={{width:52,height:52,borderRadius:12,background:`${c.color}18`,border:`1px solid ${c.color}40`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <Icon name={c.icon} size={24} style={{color:c.color}}/>
+          </div>
+          <div>
+            <h3 style={{fontFamily:"'Playfair Display',serif",color:'#fff',fontSize:20,fontWeight:600,marginBottom:10}}>{c.title}</h3>
+            <p style={{color:'rgba(255,255,255,0.55)',fontSize:14,lineHeight:1.7}}>{c.desc}</p>
+          </div>
+          <button className="btn" onClick={()=>setPage(c.page)} style={{background:c.color,color:c.color==='#c9a84c'?'#0a1628':'#0a1628',fontWeight:600,marginTop:'auto'}}>
+            {c.btn}
+          </button>
+        </div>
+      ))}
+    </div>
+
+    {/* HOD Link */}
+    <div style={{textAlign:'center',paddingBottom:32}}>
+      <button onClick={()=>setPage('department-login')} style={{background:'none',border:'none',color:'rgba(255,255,255,0.4)',fontSize:13,cursor:'pointer',textDecoration:'underline'}}>HOD Login →</button>
+    </div>
+  </div>
+);
+
+// ─── LOGIN PAGE ───
+const LoginPage=({role,onLogin,onBack,onRegister})=>{
+  const[email,setEmail]=useState('');
+  const[password,setPassword]=useState('');
+  const[error,setError]=useState('');
+  const[loading,setLoading]=useState(false);
+
+  const labels={student:'Student',admin:'Administrator',department:'Department / HOD'};
+  const handle=async()=>{
+    if(!email||!password){setError('Please enter both email and password.');return;}
+    setLoading(true);setError('');
+    await new Promise(r=>setTimeout(r,600));
+    const ok=onLogin(email,password);
+    setLoading(false);
+    if(!ok)setError('Invalid credentials. Please try again.');
+  };
+
+  return(
+    <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#0a1628 0%,#1a3356 100%)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div style={{background:'#fff',borderRadius:16,padding:40,width:'100%',maxWidth:420,boxShadow:'0 24px 80px rgba(0,0,0,0.4)'}}>
+        <button onClick={onBack} style={{background:'none',border:'none',color:'#718096',cursor:'pointer',fontSize:13,marginBottom:24,display:'flex',alignItems:'center',gap:6}}>← Back to Home</button>
+        <div style={{marginBottom:28}}>
+          <h2 style={{fontFamily:"'Playfair Display',serif",color:'#0a1628',fontSize:26,fontWeight:700}}>{labels[role]} Login</h2>
+          <p style={{color:'#718096',fontSize:13,marginTop:6}}>Enter your credentials to access the portal</p>
+        </div>
+        {error&&<div style={{background:'#fee2e2',color:'#991b1b',padding:'10px 14px',borderRadius:8,fontSize:13,marginBottom:18,border:'1px solid #fecaca'}}>{error}</div>}
+        <div className="form-group">
+          <label className="label">Email Address</label>
+          <input className="input" type="email" placeholder="Enter your email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="off"/>
+        </div>
+        <div className="form-group">
+          <label className="label">Password</label>
+          <input className="input" type="password" placeholder="Enter your password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handle()}/>
+        </div>
+        <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',padding:'12px',fontSize:15}} onClick={handle} disabled={loading}>
+          {loading?'Signing in...':'Sign In'}
+        </button>
+        {role==='student'&&onRegister&&(
+          <div style={{textAlign:'center',marginTop:18}}>
+            <span style={{color:'#718096',fontSize:13}}>New student? </span>
+            <button onClick={onRegister} style={{background:'none',border:'none',color:'#0a1628',fontWeight:600,cursor:'pointer',fontSize:13}}>Register here</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── REGISTER PAGE ───
+const RegisterPage=({onRegister,onBack})=>{
+  const[form,setForm]=useState({name:'',email:'',password:'',rollNo:''});
+  const[error,setError]=useState('');
+  const handle=()=>{
+    if(!form.name||!form.email||!form.password||!form.rollNo){setError('All fields required.');return;}
+    onRegister(form);
+    onBack();
+  };
+  return(
+    <div style={{minHeight:'100vh',background:'linear-gradient(135deg,#0a1628 0%,#1a3356 100%)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div style={{background:'#fff',borderRadius:16,padding:40,width:'100%',maxWidth:420,boxShadow:'0 24px 80px rgba(0,0,0,0.4)'}}>
+        <button onClick={onBack} style={{background:'none',border:'none',color:'#718096',cursor:'pointer',fontSize:13,marginBottom:24}}>← Back to Login</button>
+        <h2 style={{fontFamily:"'Playfair Display',serif",color:'#0a1628',fontSize:26,fontWeight:700,marginBottom:6}}>Student Registration</h2>
+        <p style={{color:'#718096',fontSize:13,marginBottom:24}}>Create your portal account</p>
+        {error&&<div style={{background:'#fee2e2',color:'#991b1b',padding:'10px 14px',borderRadius:8,fontSize:13,marginBottom:18}}>{error}</div>}
+        {['name','email','rollNo','password'].map(f=>(
+          <div className="form-group" key={f}>
+            <label className="label">{f==='rollNo'?'Roll Number':f.charAt(0).toUpperCase()+f.slice(1)}</label>
+            <input className="input" type={f==='password'?'password':f==='email'?'email':'text'} placeholder={`Enter ${f}`} value={form[f]} onChange={e=>setForm({...form,[f]:e.target.value})}/>
+          </div>
+        ))}
+        <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',padding:'12px'}} onClick={handle}>Create Account</button>
+      </div>
+    </div>
+  );
+};
+
+// ─── SHARED LAYOUT ───
+const Layout=({currentUser,logout,notifications,unreadCount,markRead,navItems,children,title})=>{
+  const[showNotif,setShowNotif]=useState(false);
+  const roleColors={student:'#c9a84c',admin:'#60a5fa',department:'#34d399',hod:'#f472b6'};
+  const roleLabel={student:'Student',admin:'Administrator',department:`Dept: ${currentUser.dept}`,hod:'HOD'};
+  return(
+    <div>
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <h2>UniGrieve</h2>
+          <p>Grievance Portal</p>
+        </div>
+        <nav style={{flex:1,padding:'16px 0'}}>
+          {navItems.map(n=>(
+            <div key={n.id} className={`nav-item${n.active?' active':''}`} onClick={n.onClick}>
+              <Icon name={n.icon} size={16}/>{n.label}
+            </div>
+          ))}
+        </nav>
+        <div style={{padding:'16px 20px',borderTop:'1px solid rgba(255,255,255,0.1)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+            <div className="avatar" style={{background:roleColors[currentUser.role]||'#60a5fa',color:'#0a1628',width:32,height:32,fontSize:12}}>
+              {currentUser.name?.charAt(0)?.toUpperCase()}
+            </div>
+            <div>
+              <p style={{color:'#fff',fontSize:13,fontWeight:500,lineHeight:1.2}}>{currentUser.name}</p>
+              <p style={{color:'rgba(255,255,255,0.4)',fontSize:11}}>{roleLabel[currentUser.role]}</p>
+            </div>
+          </div>
+          <div className="nav-item" onClick={logout} style={{borderRadius:6,padding:'8px 12px'}}>
+            <Icon name="logout" size={14}/><span style={{fontSize:13}}>Sign Out</span>
+          </div>
+        </div>
+      </aside>
+      <main className="main-content">
+        <div className="topbar">
+          <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:'#0a1628'}}>{title}</h3>
+          <div style={{display:'flex',alignItems:'center',gap:16}}>
+            <div style={{position:'relative',cursor:'pointer'}} onClick={()=>{setShowNotif(!showNotif);if(!showNotif)markRead()}}>
+              <Icon name="bell" size={20} style={{color:'#4a5568'}}/>
+              {unreadCount>0&&<span className="notif-badge">{unreadCount}</span>}
+              {showNotif&&(
+                <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',width:320,background:'#fff',borderRadius:12,border:'1px solid #e2d9c5',boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:100}}>
+                  <div style={{padding:'14px 16px',borderBottom:'1px solid #e2d9c5',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <span style={{fontWeight:600,fontSize:14}}>Notifications</span>
+                    <span style={{fontSize:12,color:'#718096'}}>{notifications.length} total</span>
+                  </div>
+                  <div className="notif-list">
+                    {notifications.length===0?<p style={{padding:16,color:'#718096',fontSize:13,textAlign:'center'}}>No notifications</p>:
+                    notifications.slice(0,15).map(n=>(
+                      <div key={n.id} className={`notif-item${n.read?'':' unread'}`}>
+                        <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                          {!n.read&&<div className="notif-dot" style={{marginTop:4}}/>}
+                          <div>
+                            <p style={{fontSize:13,color:'#1a1a2e'}}>{n.msg}</p>
+                            <p style={{fontSize:11,color:'#718096',marginTop:3}}>{new Date(n.at).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <div className="avatar" style={{background:roleColors[currentUser.role]||'#60a5fa',color:'#0a1628'}}>{currentUser.name?.charAt(0)?.toUpperCase()}</div>
+              <div>
+                <p style={{fontSize:13,fontWeight:500,color:'#1a1a2e'}}>{currentUser.name}</p>
+                <p style={{fontSize:11,color:'#718096'}}>{roleLabel[currentUser.role]}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="page-content">{children}</div>
+      </main>
+    </div>
+  );
+};
+
+// ─── STATUS BADGE ───
+const StatusBadge=({status})=>{
+  const map={Pending:'badge-pending','In Progress':'badge-inprogress',Resolved:'badge-resolved'};
+  return<span className={`badge ${map[status]||'badge-pending'}`}>{status}</span>;
+};
+
+// ─── COMPLAINT DETAIL MODAL ───
+const ComplaintModal=({complaint,onClose,canAssign,canUpdate,onAssign,onUpdate,deptFilter})=>{
+  const[dept,setDept]=useState(complaint.dept||'');
+  const[status,setStatus]=useState(complaint.status);
+  const[remarks,setRemarks]=useState(complaint.remarks||'');
+  return(
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div>
+            <span style={{fontSize:12,color:'#718096',fontWeight:600,textTransform:'uppercase',letterSpacing:.5}}>{complaint.id}</span>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,marginTop:4}}>{complaint.title}</h3>
+          </div>
+          <button className="close-btn" onClick={onClose}><Icon name="x" size={20}/></button>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+          {[['Submitted By',complaint.studentName],['Date',complaint.createdAt],['Department',complaint.dept||'Unassigned'],['Last Updated',complaint.updatedAt]].map(([l,v])=>(
+            <div key={l}>
+              <p style={{fontSize:11,color:'#718096',fontWeight:600,textTransform:'uppercase',letterSpacing:.5,marginBottom:3}}>{l}</p>
+              <p style={{fontSize:14,fontWeight:500}}>{v||'-'}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{marginBottom:20}}>
+          <p style={{fontSize:11,color:'#718096',fontWeight:600,textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>Status</p>
+          <StatusBadge status={complaint.status}/>
+        </div>
+        <div style={{background:'#f8f5ee',borderRadius:8,padding:16,marginBottom:20}}>
+          <p style={{fontSize:11,color:'#718096',fontWeight:600,textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>Description</p>
+          <p style={{fontSize:14,lineHeight:1.7,color:'#1a1a2e'}}>{complaint.description}</p>
+        </div>
+        {complaint.remarks&&<div style={{background:'#f0fdf4',borderRadius:8,padding:16,marginBottom:20,border:'1px solid #bbf7d0'}}>
+          <p style={{fontSize:11,color:'#065f46',fontWeight:600,textTransform:'uppercase',letterSpacing:.5,marginBottom:8}}>Department Remarks</p>
+          <p style={{fontSize:14,lineHeight:1.7,color:'#065f46'}}>{complaint.remarks}</p>
+        </div>}
+        {canAssign&&(
+          <div className="divider"/>
+        )}
+        {canAssign&&(
+          <div>
+            <h4 style={{fontSize:14,fontWeight:600,marginBottom:12}}>Assign to Department</h4>
+            <div style={{display:'flex',gap:10}}>
+              <select className="select" value={dept} onChange={e=>setDept(e.target.value)}>
+                <option value="">Select Department</option>
+                {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
+              </select>
+              <button className="btn btn-primary btn-sm" onClick={()=>{if(dept){onAssign(complaint.id,dept);onClose()}}}>Assign</button>
+            </div>
+          </div>
+        )}
+        {canUpdate&&(
+          <div>
+            <div className="divider"/>
+            <h4 style={{fontSize:14,fontWeight:600,marginBottom:12}}>Update Status</h4>
+            <div className="form-group">
+              <label className="label">Status</label>
+              <select className="select" value={status} onChange={e=>setStatus(e.target.value)}>
+                <option>Pending</option><option>In Progress</option><option>Resolved</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="label">Remarks / Resolution Notes</label>
+              <textarea className="input" rows={3} value={remarks} onChange={e=>setRemarks(e.target.value)} placeholder="Add remarks or resolution notes..."/>
+            </div>
+            <button className="btn btn-primary" onClick={()=>{onUpdate(complaint.id,status,remarks);onClose()}}>Update Status</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── COMPLAINTS TABLE ───
+const ComplaintsTable=({complaints,onRowClick,emptyMsg='No complaints found'})=>(
+  complaints.length===0?(
+    <div className="empty-state"><div className="empty-icon">📋</div><p style={{fontSize:16,fontWeight:500,marginBottom:8}}>No complaints found</p><p style={{fontSize:14}}>{emptyMsg}</p></div>
+  ):(
+    <div className="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Title</th><th>Student</th><th>Department</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          {complaints.map(c=>(
+            <tr key={c.id} className="complaint-row" onClick={()=>onRowClick&&onRowClick(c)}>
+              <td style={{fontWeight:600,color:'#0a1628'}}>{c.id}</td>
+              <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.title}</td>
+              <td>{c.studentName||'-'}</td>
+              <td>{c.dept?<span className={`tag ${DEPT_TAG[c.dept]||'tag-acad'}`}>{c.dept}</span>:<span style={{color:'#718096',fontSize:12}}>Unassigned</span>}</td>
+              <td><StatusBadge status={c.status}/></td>
+              <td style={{color:'#718096',fontSize:13}}>{c.createdAt}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+);
+
+// ─── STUDENT DASHBOARD ───
+const StudentDashboard=({currentUser,complaints,notifications,unreadCount,markRead,logout,onSubmit})=>{
+  const[view,setView]=useState('dashboard');
+  const[form,setForm]=useState({title:'',description:'',dept:''});
+  const[selected,setSelected]=useState(null);
+
+  const mine=complaints.filter(c=>c.studentId===currentUser.id);
+  const stats={total:mine.length,pending:mine.filter(c=>c.status==='Pending').length,inprog:mine.filter(c=>c.status==='In Progress').length,resolved:mine.filter(c=>c.status==='Resolved').length};
+
+  const navItems=[
+    {id:'dashboard',label:'Dashboard',icon:'home',active:view==='dashboard',onClick:()=>setView('dashboard')},
+    {id:'submit',label:'Submit Grievance',icon:'plus',active:view==='submit',onClick:()=>setView('submit')},
+    {id:'complaints',label:'My Complaints',icon:'list',active:view==='complaints',onClick:()=>setView('complaints')},
+  ];
+
+  const handleSubmit=()=>{
+    if(!form.title||!form.description||!form.dept){showToast('Please fill all fields.');return;}
+    onSubmit({...form,studentId:currentUser.id,studentName:currentUser.name});
+    setForm({title:'',description:'',dept:''});
+    setView('complaints');
+  };
+
+  return(
+    <Layout currentUser={currentUser} logout={logout} notifications={notifications} unreadCount={unreadCount} markRead={markRead} navItems={navItems} title={view==='dashboard'?'My Dashboard':view==='submit'?'Submit Grievance':'My Complaints'}>
+      {selected&&<ComplaintModal complaint={selected} onClose={()=>setSelected(null)}/>}
+
+      {view==='dashboard'&&(
+        <div>
+          <div style={{marginBottom:28}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:4}}>Welcome back, {currentUser.name.split(' ')[0]}</h2>
+            <p style={{color:'#718096',fontSize:14}}>Here's an overview of your grievances</p>
+          </div>
+          <div className="stat-grid">
+            {[['Total Submitted',stats.total,'award'],['Pending',stats.pending,'hourglass'],['In Progress',stats.inprog,'edit'],['Resolved',stats.resolved,'check']].map(([l,v,ic])=>(
+              <div key={l} className="stat-card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <span className="stat-label" style={{fontSize:12,textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{l}</span>
+                  <Icon name={ic} size={16} style={{color:'#c9a84c'}}/>
+                </div>
+                <div className="stat-value">{v}</div>
+              </div>
+            ))}
+          </div>
+
+          {mine.length>0&&(
+            <div className="card">
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:16,marginBottom:16}}>Recent Complaints</h3>
+              <ComplaintsTable complaints={mine.slice(0,5)} onRowClick={setSelected}/>
+            </div>
+          )}
+
+          {mine.length===0&&(
+            <div className="card" style={{textAlign:'center',padding:48}}>
+              <div style={{fontSize:48,marginBottom:16}}>📝</div>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,marginBottom:8}}>No grievances yet</h3>
+              <p style={{color:'#718096',marginBottom:20}}>Submit your first grievance and track it in real-time</p>
+              <button className="btn btn-primary" onClick={()=>setView('submit')}>Submit Grievance</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {view==='submit'&&(
+        <div style={{maxWidth:620}}>
+          <div className="card">
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,marginBottom:20}}>Submit New Grievance</h3>
+            <div className="form-group">
+              <label className="label">Grievance Title *</label>
+              <input className="input" placeholder="Brief title of your complaint" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/>
+            </div>
+            <div className="form-group">
+              <label className="label">Department *</label>
+              <select className="select" value={form.dept} onChange={e=>setForm({...form,dept:e.target.value})}>
+                <option value="">Select concerned department</option>
+                {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="label">Description *</label>
+              <textarea className="input" rows={5} placeholder="Provide detailed description of your grievance..." value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/>
+            </div>
+            <div style={{display:'flex',gap:12,marginTop:8}}>
+              <button className="btn btn-primary" onClick={handleSubmit}><Icon name="plus" size={14}/>Submit Grievance</button>
+              <button className="btn btn-outline" onClick={()=>setView('dashboard')}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view==='complaints'&&(
+        <div className="card">
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18}}>My Complaints</h3>
+            <button className="btn btn-primary btn-sm" onClick={()=>setView('submit')}><Icon name="plus" size={14}/>New</button>
+          </div>
+          <ComplaintsTable complaints={mine} onRowClick={setSelected} emptyMsg="You haven't submitted any complaints yet."/>
+        </div>
+      )}
+    </Layout>
+  );
+};
+
+// ─── ADMIN DASHBOARD ───
+const AdminDashboard=({currentUser,complaints,notifications,unreadCount,markRead,logout,onAssign,students})=>{
+  const[view,setView]=useState('dashboard');
+  const[selected,setSelected]=useState(null);
+  const[search,setSearch]=useState('');
+  const[filterStatus,setFilterStatus]=useState('');
+  const[filterDept,setFilterDept]=useState('');
+
+  const navItems=[
+    {id:'dashboard',label:'Dashboard',icon:'home',active:view==='dashboard',onClick:()=>setView('dashboard')},
+    {id:'complaints',label:'All Complaints',icon:'list',active:view==='complaints',onClick:()=>setView('complaints')},
+    {id:'unassigned',label:'Unassigned',icon:'hourglass',active:view==='unassigned',onClick:()=>setView('unassigned')},
+    {id:'analytics',label:'Analytics',icon:'chart',active:view==='analytics',onClick:()=>setView('analytics')},
+  ];
+
+  const stats={
+    total:complaints.length,
+    unassigned:complaints.filter(c=>!c.dept).length,
+    pending:complaints.filter(c=>c.status==='Pending').length,
+    resolved:complaints.filter(c=>c.status==='Resolved').length,
+    inprog:complaints.filter(c=>c.status==='In Progress').length,
+  };
+
+  const filtered=complaints.filter(c=>{
+    const s=search.toLowerCase();
+    const matchSearch=!s||c.title?.toLowerCase().includes(s)||c.id?.toLowerCase().includes(s)||c.studentName?.toLowerCase().includes(s);
+    const matchStatus=!filterStatus||c.status===filterStatus;
+    const matchDept=!filterDept||c.dept===filterDept;
+    return matchSearch&&matchStatus&&matchDept;
+  });
+
+  const deptBreakdown=DEPARTMENTS.map(d=>({dept:d,count:complaints.filter(c=>c.dept===d).length,resolved:complaints.filter(c=>c.dept===d&&c.status==='Resolved').length}));
+
+  return(
+    <Layout currentUser={currentUser} logout={logout} notifications={notifications} unreadCount={unreadCount} markRead={markRead} navItems={navItems} title={view==='dashboard'?'Admin Dashboard':view==='complaints'?'All Complaints':view==='unassigned'?'Unassigned Complaints':'Analytics'}>
+      {selected&&<ComplaintModal complaint={selected} onClose={()=>setSelected(null)} canAssign={!selected.dept} onAssign={onAssign}/>}
+
+      {view==='dashboard'&&(
+        <div>
+          <div style={{marginBottom:28}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:4}}>Administrator Overview</h2>
+            <p style={{color:'#718096',fontSize:14}}>System-wide complaint management dashboard</p>
+          </div>
+          <div className="stat-grid">
+            {[['Total Complaints',stats.total,'list'],['Unassigned',stats.unassigned,'hourglass'],['In Progress',stats.inprog,'edit'],['Resolved',stats.resolved,'check']].map(([l,v,ic])=>(
+              <div key={l} className="stat-card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <span className="stat-label" style={{fontSize:12,textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{l}</span>
+                  <Icon name={ic} size={16} style={{color:'#c9a84c'}}/>
+                </div>
+                <div className="stat-value">{v}</div>
+              </div>
+            ))}
+          </div>
+
+          {stats.unassigned>0&&(
+            <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:12,padding:16,marginBottom:24,display:'flex',alignItems:'center',gap:12}}>
+              <Icon name="hourglass" size={20} style={{color:'#d97706',flexShrink:0}}/>
+              <div>
+                <p style={{fontWeight:600,color:'#92400e',fontSize:14}}>{stats.unassigned} complaint{stats.unassigned!==1?'s':''} awaiting assignment</p>
+                <p style={{color:'#b45309',fontSize:13}}>Review and assign these to appropriate departments.</p>
+              </div>
+              <button className="btn btn-sm" style={{marginLeft:'auto',background:'#d97706',color:'#fff'}} onClick={()=>setView('unassigned')}>Review Now</button>
+            </div>
+          )}
+
+          <div className="card">
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:16,marginBottom:16}}>Recent Complaints</h3>
+            <ComplaintsTable complaints={complaints.slice(-5).reverse()} onRowClick={setSelected}/>
+          </div>
+        </div>
+      )}
+
+      {(view==='complaints'||view==='unassigned')&&(
+        <div className="card">
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,marginRight:'auto'}}>{view==='unassigned'?'Unassigned Complaints':'All Complaints'}</h3>
+            {view==='complaints'&&<>
+              <div style={{position:'relative'}}>
+                <Icon name="search" size={15} style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#718096'}}/>
+                <input className="input" style={{paddingLeft:34,width:200}} placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)}/>
+              </div>
+              <select className="select" style={{width:140}} value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}>
+                <option value="">All Status</option><option>Pending</option><option>In Progress</option><option>Resolved</option>
+              </select>
+              <select className="select" style={{width:160}} value={filterDept} onChange={e=>setFilterDept(e.target.value)}>
+                <option value="">All Departments</option>
+                {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
+              </select>
+            </>}
+          </div>
+          <ComplaintsTable complaints={view==='unassigned'?complaints.filter(c=>!c.dept):filtered} onRowClick={setSelected}/>
+        </div>
+      )}
+
+      {view==='analytics'&&(
+        <div>
+          <div style={{marginBottom:24}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:4}}>Analytics & Reports</h2>
+            <p style={{color:'#718096',fontSize:14}}>Department-wise complaint breakdown</p>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20}}>
+            {deptBreakdown.map(({dept,count,resolved})=>(
+              <div key={dept} className="card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <span className={`tag ${DEPT_TAG[dept]||'tag-acad'}`}>{dept}</span>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:'#0a1628'}}>{count}</span>
+                </div>
+                <div style={{marginBottom:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#718096',marginBottom:4}}>
+                    <span>Resolution rate</span>
+                    <span>{count?Math.round(resolved/count*100):0}%</span>
+                  </div>
+                  <div className="progress-bar"><div className="progress-fill" style={{width:`${count?Math.round(resolved/count*100):0}%`}}/></div>
+                </div>
+                <p style={{fontSize:12,color:'#718096'}}>{resolved} of {count} resolved</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Layout>
+  );
+};
+
+// ─── DEPT DASHBOARD ───
+const DeptDashboard=({currentUser,complaints,notifications,unreadCount,markRead,logout,onUpdate})=>{
+  const[view,setView]=useState('dashboard');
+  const[selected,setSelected]=useState(null);
+
+  const mine=complaints.filter(c=>c.dept===currentUser.dept);
+  const stats={total:mine.length,pending:mine.filter(c=>c.status==='Pending').length,inprog:mine.filter(c=>c.status==='In Progress').length,resolved:mine.filter(c=>c.status==='Resolved').length};
+
+  const navItems=[
+    {id:'dashboard',label:'Dashboard',icon:'home',active:view==='dashboard',onClick:()=>setView('dashboard')},
+    {id:'complaints',label:'Assigned Complaints',icon:'list',active:view==='complaints',onClick:()=>setView('complaints')},
+  ];
+
+  return(
+    <Layout currentUser={currentUser} logout={logout} notifications={notifications} unreadCount={unreadCount} markRead={markRead} navItems={navItems} title={view==='dashboard'?`${currentUser.dept} Dashboard`:'Assigned Complaints'}>
+      {selected&&<ComplaintModal complaint={selected} onClose={()=>setSelected(null)} canUpdate={true} onUpdate={onUpdate}/>}
+
+      {view==='dashboard'&&(
+        <div>
+          <div style={{marginBottom:28}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:4}}>{currentUser.dept} Department</h2>
+            <p style={{color:'#718096',fontSize:14}}>Manage and resolve assigned complaints</p>
+          </div>
+          <div className="stat-grid">
+            {[['Total Assigned',stats.total,'list'],['Pending',stats.pending,'hourglass'],['In Progress',stats.inprog,'edit'],['Resolved',stats.resolved,'check']].map(([l,v,ic])=>(
+              <div key={l} className="stat-card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <span className="stat-label" style={{fontSize:12,textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{l}</span>
+                  <Icon name={ic} size={16} style={{color:'#c9a84c'}}/>
+                </div>
+                <div className="stat-value">{v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="card">
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:16,marginBottom:16}}>Recent Assignments</h3>
+            <ComplaintsTable complaints={mine.slice(0,5)} onRowClick={setSelected} emptyMsg="No complaints assigned to your department yet."/>
+          </div>
+        </div>
+      )}
+
+      {view==='complaints'&&(
+        <div className="card">
+          <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,marginBottom:20}}>Assigned Complaints</h3>
+          <ComplaintsTable complaints={mine} onRowClick={setSelected} emptyMsg="No complaints assigned to your department."/>
+        </div>
+      )}
+    </Layout>
+  );
+};
+
+// ─── HOD DASHBOARD ───
+const HODDashboard=({currentUser,complaints,notifications,unreadCount,markRead,logout})=>{
+  const[view,setView]=useState('dashboard');
+  const[selected,setSelected]=useState(null);
+  const[filterDept,setFilterDept]=useState('');
+
+  const navItems=[
+    {id:'dashboard',label:'Overview',icon:'home',active:view==='dashboard',onClick:()=>setView('dashboard')},
+    {id:'all',label:'All Complaints',icon:'list',active:view==='all',onClick:()=>setView('all')},
+    {id:'analytics',label:'Analytics',icon:'chart',active:view==='analytics',onClick:()=>setView('analytics')},
+  ];
+
+  const stats={total:complaints.length,pending:complaints.filter(c=>c.status==='Pending').length,inprog:complaints.filter(c=>c.status==='In Progress').length,resolved:complaints.filter(c=>c.status==='Resolved').length};
+  const filtered=filterDept?complaints.filter(c=>c.dept===filterDept):complaints;
+  const deptBreakdown=DEPARTMENTS.map(d=>({dept:d,count:complaints.filter(c=>c.dept===d).length,resolved:complaints.filter(c=>c.dept===d&&c.status==='Resolved').length,pending:complaints.filter(c=>c.dept===d&&c.status==='Pending').length}));
+
+  return(
+    <Layout currentUser={currentUser} logout={logout} notifications={notifications} unreadCount={unreadCount} markRead={markRead} navItems={navItems} title={view==='dashboard'?'HOD Overview':view==='all'?'All Complaints':'Analytics'}>
+      {selected&&<ComplaintModal complaint={selected} onClose={()=>setSelected(null)}/>}
+
+      {view==='dashboard'&&(
+        <div>
+          <div style={{marginBottom:28}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:4}}>HOD — Full System Overview</h2>
+            <p style={{color:'#718096',fontSize:14}}>Complete visibility across all departments</p>
+          </div>
+          <div className="stat-grid">
+            {[['Total Complaints',stats.total,'list'],['Pending',stats.pending,'hourglass'],['In Progress',stats.inprog,'edit'],['Resolved',stats.resolved,'check']].map(([l,v,ic])=>(
+              <div key={l} className="stat-card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <span className="stat-label" style={{fontSize:12,textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{l}</span>
+                  <Icon name={ic} size={16} style={{color:'#c9a84c'}}/>
+                </div>
+                <div className="stat-value">{v}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:16,marginBottom:24}}>
+            {deptBreakdown.filter(d=>d.count>0).map(({dept,count,resolved,pending})=>(
+              <div key={dept} className="card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+                  <span className={`tag ${DEPT_TAG[dept]||'tag-acad'}`}>{dept}</span>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700}}>{count}</span>
+                </div>
+                <div style={{display:'flex',gap:12,fontSize:12,color:'#718096'}}>
+                  <span style={{color:'#92400e'}}>Pending: {pending}</span>
+                  <span style={{color:'#065f46'}}>Resolved: {resolved}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {view==='all'&&(
+        <div className="card">
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:18,marginRight:'auto'}}>All Complaints</h3>
+            <select className="select" style={{width:180}} value={filterDept} onChange={e=>setFilterDept(e.target.value)}>
+              <option value="">All Departments</option>
+              {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <ComplaintsTable complaints={filtered} onRowClick={setSelected}/>
+        </div>
+      )}
+
+      {view==='analytics'&&(
+        <div>
+          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,marginBottom:24}}>System Analytics</h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20}}>
+            {deptBreakdown.map(({dept,count,resolved})=>(
+              <div key={dept} className="card">
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                  <span className={`tag ${DEPT_TAG[dept]||'tag-acad'}`}>{dept}</span>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700}}>{count}</span>
+                </div>
+                <div style={{marginBottom:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#718096',marginBottom:4}}>
+                    <span>Resolution rate</span><span>{count?Math.round(resolved/count*100):0}%</span>
+                  </div>
+                  <div className="progress-bar"><div className="progress-fill" style={{width:`${count?Math.round(resolved/count*100):0}%`}}/></div>
+                </div>
+                <p style={{fontSize:12,color:'#718096'}}>{resolved} of {count} resolved</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Layout>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

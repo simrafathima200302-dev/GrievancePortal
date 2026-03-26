@@ -4,21 +4,43 @@ import { authAPI } from '../services/api';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('grs_user')); } catch { return null; }
-  });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Restore session on refresh (IMPORTANT FIX)
+  useEffect(() => {
+    const token = localStorage.getItem('grs_token');
+    const storedUser = localStorage.getItem('grs_user');
+
+    if (token && storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('grs_token');
+        localStorage.removeItem('grs_user');
+        setUser(null);
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
     try {
       const { data } = await authAPI.login(email, password);
+
+      // ✅ Save properly
       localStorage.setItem('grs_token', data.token);
       localStorage.setItem('grs_user', JSON.stringify(data.user));
+
       setUser(data.user);
+
       return { success: true, user: data.user };
     } catch (err) {
-      return { success: false, error: err.response?.data?.error || 'Login failed' };
+      return {
+        success: false,
+        error: err.response?.data?.error || 'Login failed'
+      };
     } finally {
       setLoading(false);
     }
@@ -29,7 +51,10 @@ export const AuthProvider = ({ children }) => {
       await authAPI.register(formData);
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.response?.data?.error || 'Registration failed' };
+      return {
+        success: false,
+        error: err.response?.data?.error || 'Registration failed'
+      };
     }
   };
 
@@ -41,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, login, logout, register, loading }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

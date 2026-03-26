@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// ✅ Define API URL separately
+// ✅ Backend URL (Render)
 const API_URL = "https://grievanceportal-8gew.onrender.com";
 
-// ✅ Create axios instance correctly
+// ✅ Axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,18 +11,20 @@ const api = axios.create({
   }
 });
 
-// Attach JWT token to every request
+// ✅ Attach JWT token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('grs_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// Handle 401 globally
+// ✅ Handle unauthorized (auto logout)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response && err.response.status === 401) {
       localStorage.removeItem('grs_token');
       localStorage.removeItem('grs_user');
       window.location.href = '/';
@@ -31,23 +33,29 @@ api.interceptors.response.use(
   }
 );
 
+// ✅ AUTH APIs (FIXED: added /api)
 export const authAPI = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
-  register: (data) => api.post('/auth/register', data),
+  login: (email, password) =>
+    api.post('/api/auth/login', { email, password }),
+  register: (data) =>
+    api.post('/api/auth/register', data),
 };
 
+// ✅ COMPLAINT APIs (FIXED: added /api)
 export const complaintsAPI = {
-  getAll: () => api.get('/complaints'),
-  getOne: (id) => api.get(`/complaints/${id}`),
-  submit: (data) => api.post('/complaints', data),
-  assign: (id, dept) => api.patch(`/complaints/${id}/assign`, { dept }),
+  getAll: () => api.get('/api/complaints'),
+  getOne: (id) => api.get(`/api/complaints/${id}`),
+  submit: (data) => api.post('/api/complaints', data),
+  assign: (id, dept) =>
+    api.patch(`/api/complaints/${id}/assign`, { dept }),
   updateStatus: (id, status, remarks) =>
-    api.patch(`/complaints/${id}/status`, { status, remarks }),
+    api.patch(`/api/complaints/${id}/status`, { status, remarks }),
 };
 
+// ✅ NOTIFICATIONS APIs (FIXED: added /api)
 export const notificationsAPI = {
-  getAll: () => api.get('/notifications'),
-  markRead: () => api.patch('/notifications/read'),
+  getAll: () => api.get('/api/notifications'),
+  markRead: () => api.patch('/api/notifications/read'),
 };
 
 export default api;

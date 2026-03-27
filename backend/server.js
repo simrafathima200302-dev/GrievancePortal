@@ -1,12 +1,5 @@
-const { Pool } = require('pg');
+require('dotenv').config(); // ✅ MUST BE FIRST
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
@@ -17,9 +10,9 @@ const notificationRoutes = require('./routes/notifications');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ─── ✅ FIXED CORS (allows mobile + deployed frontend) ───
+// ─── ✅ CORS ───
 app.use(cors({
-  origin: "*",   // ✅ allows all devices (mobile + laptop)
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -51,7 +44,7 @@ app.use((req, res) => {
 
 // ─── Error handler ───
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("🔥 Server Error:", err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
